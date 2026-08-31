@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "ignoreDeprecations": "6.0",
+    "esModuleInterop": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "/tmp/react-task-board-unit",
+    "rootDir": "."
+  },
+  "include": [
+    "src/task-board/domain/**/*.ts",
+    "src/task-board/application/**/*.ts",
+    "src/task-board/infrastructure/**/*.ts",
+    "tests/unit/**/*.ts"
+  ]
+}

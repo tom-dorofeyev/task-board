@@ -1,0 +1,9 @@
+.apm/preflight-state.yaml
+.env
+.env.*
+!.env.example
+.jscpd-report/
+coverage/
+dist/
+node_modules/
+*.tsbuildinfo
