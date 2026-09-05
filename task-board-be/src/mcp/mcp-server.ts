@@ -96,6 +96,14 @@ function registerTools(server: McpServer, api: TaskBoardApiClient): void {
     ({ taskId, task }) => toolResult(api.updateTask(taskId, task)),
   );
   server.registerTool(
+    'task_board_delete_task',
+    {
+      description: 'Permanently delete a task by ID.',
+      inputSchema: z.object({ taskId: requiredString }),
+    },
+    ({ taskId }) => toolResult(api.deleteTask(taskId)),
+  );
+  server.registerTool(
     'task_board_move_task',
     {
       description: 'Move a task before an anchor or append it.',

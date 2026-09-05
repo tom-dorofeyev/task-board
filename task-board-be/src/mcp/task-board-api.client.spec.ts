@@ -39,4 +39,22 @@ describe('TaskBoardApiClient', () => {
       message: 'Authentication is required',
     });
   });
+
+  it('maps a task deletion to an encoded DELETE request', async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    const client = new TaskBoardApiClient(
+      'https://task-board.example/',
+      undefined,
+      fetcher,
+    );
+
+    await client.deleteTask('a/b');
+
+    expect(fetcher.mock.calls[0][0].toString()).toBe(
+      'https://task-board.example/tasks/a%2Fb',
+    );
+    expect(fetcher.mock.calls[0][1]).toMatchObject({ method: 'DELETE' });
+  });
 });

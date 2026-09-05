@@ -102,6 +102,13 @@ export class TaskService {
     return copyTask(task);
   }
 
+  async remove(taskId: string): Promise<void> {
+    const task = await this.findTask(taskId);
+    await this.repository.remove(task.id);
+    await this.normalize(task.status);
+    await this.repository.flush();
+  }
+
   async move(
     taskId: string,
     input: Record<string, unknown>,

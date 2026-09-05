@@ -1,11 +1,17 @@
-import { TASK_STATUSES, type Task, type TaskStatus } from '../../../domain/task'
+import {
+  TASK_STATUSES,
+  type Task,
+  type TaskId,
+  type TaskStatus,
+} from '../../../domain/task'
 
 interface TaskCardProps {
   task: Task
   position: number
   canMove: boolean
   hasUnloadedBoundary: boolean
-  onOpen(): void
+  onOpen(taskId: TaskId): void
+  onDelete(taskId: TaskId): void
   onMove(status: TaskStatus, position: number): void
   onDropTask(taskId: string): void
 }
@@ -16,6 +22,7 @@ export function TaskCard({
   canMove,
   hasUnloadedBoundary,
   onOpen,
+  onDelete,
   onMove,
   onDropTask,
 }: TaskCardProps) {
@@ -43,9 +50,20 @@ export function TaskCard({
       <button
         className="task-card__open"
         type="button"
-        onClick={onOpen}
+        onClick={() => onOpen(task.id)}
         aria-label={`Open ${task.key}: ${task.title}`}
       />
+      <button
+        className="task-card__delete"
+        type="button"
+        onClick={() => onDelete(task.id)}
+        aria-label={`Delete ${task.key}`}
+        title="Delete task"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M4 7h16M10 11v6m4-6v6M9 7l1-3h4l1 3m-8 0 1 13h8l1-13" />
+        </svg>
+      </button>
       <button
         className="drag-handle"
         type="button"

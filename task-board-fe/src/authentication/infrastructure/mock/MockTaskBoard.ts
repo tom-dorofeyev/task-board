@@ -59,6 +59,23 @@ export class MockTaskBoard {
     return this.get(input.id)
   }
 
+  delete(id: string): boolean {
+    const task = this.get(id)
+    if (task === undefined) return false
+    this.tasks = this.tasks.filter((candidate) => candidate.id !== id)
+    const positions = new Map(
+      tasksByStatus(this.tasks, task.status).map((candidate, position) => [
+        candidate.id,
+        position,
+      ]),
+    )
+    this.tasks = this.tasks.map((candidate) => ({
+      ...candidate,
+      position: positions.get(candidate.id) ?? candidate.position,
+    }))
+    return true
+  }
+
   move(input: MoveTaskInput): MoveTaskResult | undefined {
     const task = this.get(input.taskId)
     if (task === undefined) return undefined

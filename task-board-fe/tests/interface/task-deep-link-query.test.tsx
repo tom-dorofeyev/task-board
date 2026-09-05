@@ -16,6 +16,7 @@ import type {
   TaskQueries,
 } from '../../src/task-board/application/ports/TaskQueries'
 import { CreateTask } from '../../src/task-board/application/use-cases/CreateTask'
+import { DeleteTask } from '../../src/task-board/application/use-cases/DeleteTask'
 import { GetTask } from '../../src/task-board/application/use-cases/GetTask'
 import { LoadTaskBoard } from '../../src/task-board/application/use-cases/LoadTaskBoard'
 import { MoveTask } from '../../src/task-board/application/use-cases/MoveTask'
@@ -207,6 +208,7 @@ function createServices(
     getTask: new GetTask(adapter),
     createTask: new CreateTask(adapter),
     updateTask: new UpdateTask(adapter),
+    deleteTask: new DeleteTask(adapter),
     moveTask: new MoveTask(adapter),
   }
 }
@@ -244,6 +246,8 @@ class PartialBoardAdapter
   async updateTask(input: UpdateTaskInput) {
     return { ...UNLOADED_TASK, ...input.task }
   }
+
+  async deleteTask() {}
 
   async moveTask() {
     return {
@@ -344,6 +348,8 @@ class RetryingCreateAdapter
     if (task === undefined) throw new Error('Task unavailable')
     return { ...task, ...input.task }
   }
+
+  async deleteTask() {}
 
   async moveTask(input: MoveTaskInput) {
     const previous = this.tasks.find((task) => task.id === input.taskId)

@@ -8,6 +8,7 @@ import { TaskStatusColumn } from '../../src/task-board/interface/react/component
 
 const callbacks = {
   onOpenTask: vi.fn(),
+  onDeleteTask: vi.fn(),
   onMoveTask: vi.fn(),
   onMoveTaskBefore: vi.fn(),
 }

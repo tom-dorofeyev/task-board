@@ -1,6 +1,7 @@
 import type { TaskBoardBootstrap } from '../../application/ports/TaskBoardBootstrap'
 import type {
   CreateTaskInput,
+  DeleteTaskInput,
   MoveTaskInput,
   MoveTaskResult,
   TaskCommands,
@@ -77,6 +78,14 @@ export class HttpTaskRepository
     )
   }
 
+  async deleteTask(input: DeleteTaskInput): Promise<void> {
+    await this.response(
+      this.requests.delete(`/tasks/${encodeURIComponent(input.id)}`),
+      'Task could not be deleted.',
+      204,
+    )
+  }
+
   async moveTask(input: MoveTaskInput): Promise<MoveTaskResult> {
     return moveTaskResult(
       await this.post(
@@ -110,8 +119,13 @@ export class HttpTaskRepository
   private async response(
     request: Promise<HttpRequestResult>,
     message: string,
+    expectedStatus = 200,
   ): Promise<HttpResponse> {
-    return this.success(await this.requestResult(request, message), message)
+    return this.success(
+      await this.requestResult(request, message),
+      message,
+      expectedStatus,
+    )
   }
 
   private async requestResult(
@@ -129,8 +143,12 @@ export class HttpTaskRepository
     }
   }
 
-  private success(result: HttpResponse, message: string): HttpResponse {
-    if (result.status !== 200) throw new TaskRequestError(message)
+  private success(
+    result: HttpResponse,
+    message: string,
+    expectedStatus = 200,
+  ): HttpResponse {
+    if (result.status !== expectedStatus) throw new TaskRequestError(message)
     return result
   }
 }

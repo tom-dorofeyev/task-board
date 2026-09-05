@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -40,6 +41,13 @@ export class TasksController {
   @RequirePermissions('tasks:write')
   replace(@Param('taskId') taskId: string, @Body() body: unknown) {
     return this.tasks.replace(taskId, body);
+  }
+
+  @Delete(':taskId')
+  @HttpCode(204)
+  @RequirePermissions('tasks:write')
+  async remove(@Param('taskId') taskId: string): Promise<void> {
+    await this.tasks.remove(taskId);
   }
 
   @Post(':taskId/move')

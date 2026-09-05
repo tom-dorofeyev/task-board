@@ -92,6 +92,16 @@ export function mergeUpdatedTask(
   })
 }
 
+export function removeTask(
+  taskBoard: TaskBoardSnapshot,
+  task: Task,
+): TaskBoardSnapshot {
+  return reconcileTask(taskBoard, task, {
+    includeInLoadedItems: false,
+    totalChanges: singleStatusTotalChange(task.status, -1),
+  })
+}
+
 export const isTaskPageExhaustive = (page: TaskPage): boolean => {
   return (
     page.items.length === page.totalCount &&

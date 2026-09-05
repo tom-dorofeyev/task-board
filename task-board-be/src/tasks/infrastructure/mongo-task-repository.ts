@@ -74,6 +74,11 @@ export class MongoTaskRepository implements TaskRepository, OnModuleDestroy {
     this.tasks.push(task);
   }
 
+  async remove(taskId: string): Promise<void> {
+    const index = this.tasks.findIndex((task) => task.id === taskId);
+    if (index >= 0) this.tasks.splice(index, 1);
+  }
+
   async nextKey(): Promise<string> {
     return `NEX-${this.nextTaskNumber++}`;
   }

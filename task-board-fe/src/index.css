@@ -358,6 +358,51 @@ h1 {
   height: 36px;
   font-size: 24px;
 }
+.task-card__delete {
+  position: absolute;
+  z-index: 2;
+  top: 9px;
+  right: 9px;
+  width: 29px;
+  height: 29px;
+  padding: 5px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #8f4541;
+  opacity: 0;
+  pointer-events: auto !important;
+}
+.task-card:hover .task-card__delete,
+.task-card__delete:focus-visible {
+  opacity: 1;
+}
+.task-card__delete:hover {
+  background: #fbe7e6;
+}
+.task-card__delete svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+.dialog--confirmation {
+  width: min(420px, calc(100vw - 36px));
+}
+.dialog--confirmation h2,
+.dialog--confirmation p {
+  margin-top: 0;
+}
+.button--danger {
+  background: #a82929;
+  color: white;
+}
+.button--danger:hover:not(:disabled) {
+  background: #892121;
+}
 .form-field {
   display: grid;
   gap: 7px;

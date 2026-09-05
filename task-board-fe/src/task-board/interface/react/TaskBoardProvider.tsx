@@ -1,5 +1,6 @@
 import { useMemo, type PropsWithChildren } from 'react'
 import { CreateTask } from '../../application/use-cases/CreateTask'
+import { DeleteTask } from '../../application/use-cases/DeleteTask'
 import { GetTask } from '../../application/use-cases/GetTask'
 import { LoadTaskBoard } from '../../application/use-cases/LoadTaskBoard'
 import { MoveTask } from '../../application/use-cases/MoveTask'
@@ -20,6 +21,7 @@ function createTaskBoardServices(
     getTask: new GetTask(repository),
     createTask: new CreateTask(repository),
     updateTask: new UpdateTask(repository),
+    deleteTask: new DeleteTask(repository),
     moveTask: new MoveTask(repository),
   }
 }

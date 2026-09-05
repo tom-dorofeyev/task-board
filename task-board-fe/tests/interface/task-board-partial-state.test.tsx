@@ -12,6 +12,7 @@ import type { TaskBoardSnapshot } from '../../src/task-board/application/ports/T
 import { createTaskBoardPageWindows } from '../../src/task-board/application/taskPageWindow'
 import { CreateTask } from '../../src/task-board/application/use-cases/CreateTask'
 import { MoveTask } from '../../src/task-board/application/use-cases/MoveTask'
+import { DeleteTask } from '../../src/task-board/application/use-cases/DeleteTask'
 import { UpdateTask } from '../../src/task-board/application/use-cases/UpdateTask'
 import type { Task } from '../../src/task-board/domain/task'
 import { TaskBoardView } from '../../src/task-board/interface/react/components/TaskBoardView'
@@ -210,6 +211,29 @@ test('failed authoritative move restores items totals and tokens', async () => {
   expect(screen.getByRole('alert')).toHaveTextContent('board was restored')
 })
 
+test('asks for confirmation before deleting a task', async () => {
+  const deleteTask = vi.fn(async () => undefined)
+  const { onTaskDeleted, onCloseTask } = renderBoard(
+    incompleteBoard(),
+    TASK.id,
+    vi.fn(),
+    deleteTask,
+  )
+
+  fireEvent.click(screen.getByRole('button', { name: 'Delete NEX-1' }))
+
+  expect(
+    screen.getByRole('heading', { name: 'Delete task?' }),
+  ).toBeInTheDocument()
+  expect(deleteTask).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Delete task' }))
+
+  await waitFor(() => expect(deleteTask).toHaveBeenCalledWith({ id: TASK.id }))
+  expect(onTaskDeleted).toHaveBeenCalledWith(TASK)
+  expect(onCloseTask).toHaveBeenCalled()
+})
+
 function incompleteBoard(): TaskBoardSnapshot {
   const emptyPage = { items: [], totalCount: 0, pageInfo: {} }
   return {
@@ -227,12 +251,16 @@ function renderBoard(
   taskBoard: TaskBoardSnapshot,
   taskId: string,
   moveTask = vi.fn(),
+  deleteTask = vi.fn(async () => undefined),
 ) {
   const onTaskBoardChange = vi.fn()
+  const onTaskDeleted = vi.fn()
+  const onCloseTask = vi.fn()
   const commands = {
     createTask: vi.fn(async () => TASK),
     updateTask: vi.fn(async () => TASK),
     moveTask,
+    deleteTask,
   }
   render(
     <MemoryRouter initialEntries={[`/board/${taskId}`]}>
@@ -251,17 +279,19 @@ function renderBoard(
         onTaskBoardChange={onTaskBoardChange}
         onTaskCreated={vi.fn()}
         onTaskUpdated={vi.fn()}
+        onTaskDeleted={onTaskDeleted}
         onOpenTask={vi.fn()}
         onCreateTask={vi.fn()}
-        onCloseTask={vi.fn()}
+        onCloseTask={onCloseTask}
         createTaskUseCase={new CreateTask(commands)}
         updateTask={new UpdateTask(commands)}
+        deleteTaskUseCase={new DeleteTask(commands)}
         moveTaskUseCase={new MoveTask(commands)}
       />
       <CurrentPath />
     </MemoryRouter>,
   )
-  return { onTaskBoardChange, moveTask }
+  return { onTaskBoardChange, moveTask, onTaskDeleted, onCloseTask }
 }
 
 function CurrentPath() {
@@ -280,6 +310,7 @@ function StatefulBoard({
     createTask: vi.fn(async () => TASK),
     updateTask: vi.fn(async () => TASK),
     moveTask: move,
+    deleteTask: vi.fn(async () => undefined),
   }
   return (
     <MemoryRouter>
@@ -294,11 +325,13 @@ function StatefulBoard({
         onTaskBoardChange={setTaskBoard}
         onTaskCreated={vi.fn()}
         onTaskUpdated={vi.fn()}
+        onTaskDeleted={vi.fn()}
         onOpenTask={vi.fn()}
         onCreateTask={vi.fn()}
         onCloseTask={vi.fn()}
         createTaskUseCase={new CreateTask(commands)}
         updateTask={new UpdateTask(commands)}
+        deleteTaskUseCase={new DeleteTask(commands)}
         moveTaskUseCase={new MoveTask(commands)}
       />
     </MemoryRouter>

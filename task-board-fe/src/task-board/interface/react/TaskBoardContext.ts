@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { CreateTask } from '../../application/use-cases/CreateTask'
+import type { DeleteTask } from '../../application/use-cases/DeleteTask'
 import type { GetTask } from '../../application/use-cases/GetTask'
 import type { LoadTaskBoard } from '../../application/use-cases/LoadTaskBoard'
 import type { MoveTask } from '../../application/use-cases/MoveTask'
@@ -12,6 +13,7 @@ export interface TaskBoardServices {
   getTask: GetTask
   createTask: CreateTask
   updateTask: UpdateTask
+  deleteTask: DeleteTask
   moveTask: MoveTask
 }
 

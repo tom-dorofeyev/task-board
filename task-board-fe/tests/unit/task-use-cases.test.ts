@@ -3,9 +3,11 @@ import { describe, it } from 'node:test'
 import { CreateTask } from '../../src/task-board/application/use-cases/CreateTask'
 import { UpdateTask } from '../../src/task-board/application/use-cases/UpdateTask'
 import { MoveTask } from '../../src/task-board/application/use-cases/MoveTask'
+import { DeleteTask } from '../../src/task-board/application/use-cases/DeleteTask'
 import { CreateTaskIntentValidationError } from '../../src/task-board/application/CreateTaskIntentId'
 import type {
   CreateTaskInput,
+  DeleteTaskInput,
   TaskCommands,
   UpdateTaskInput,
   MoveTaskInput,
@@ -43,6 +45,16 @@ describe('MoveTask', () => {
       previousStatus: TODO.status,
       affectedTasks: [TODO],
     })
+  })
+})
+
+describe('DeleteTask', () => {
+  it('forwards the selected task ID to the command port', async () => {
+    const commands = new CapturingCommands()
+
+    await new DeleteTask(commands).execute({ id: TODO.id })
+
+    assert.deepEqual(commands.deleted, { id: TODO.id })
   })
 })
 
@@ -141,6 +153,7 @@ class CapturingCommands implements TaskCommands {
   created: CreateTaskInput | null = null
   updated: UpdateTaskInput | null = null
   moved: MoveTaskInput | null = null
+  deleted: DeleteTaskInput | null = null
 
   async createTask(input: CreateTaskInput): Promise<Task> {
     this.created = input
@@ -150,6 +163,10 @@ class CapturingCommands implements TaskCommands {
   async updateTask(input: UpdateTaskInput): Promise<Task> {
     this.updated = input
     return { ...TODO, ...input.task }
+  }
+
+  async deleteTask(input: DeleteTaskInput): Promise<void> {
+    this.deleted = input
   }
 
   async moveTask(input: MoveTaskInput) {

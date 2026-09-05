@@ -3,6 +3,7 @@ import { useLocation, useMatch, useNavigate, useParams } from 'react-router-dom'
 import { LoadingIcon } from '../../../shared/interface/react/components/LoadingIcon'
 import {
   mergeCreatedTask,
+  removeTask,
   mergeUpdatedTask,
 } from '../../application/taskBoardSnapshot'
 import type { TaskBoardSnapshot } from '../../application/ports/TaskQueries'
@@ -28,6 +29,7 @@ export function TaskBoardPage() {
     getTask,
     createTask: createTaskUseCase,
     updateTask,
+    deleteTask,
     moveTask,
   } = useTaskBoardServices()
   const [createIdempotencyKey] = useState(() =>
@@ -45,7 +47,7 @@ export function TaskBoardPage() {
   })
 
   const openTask = useCallback(
-    (task: Task) => navigate(`/board/${encodeURIComponent(task.id)}`),
+    (taskId: string) => navigate(`/board/${encodeURIComponent(taskId)}`),
     [navigate],
   )
   const createTask = useCallback(() => {
@@ -73,6 +75,12 @@ export function TaskBoardPage() {
       transitionTaskBoard((taskBoard) =>
         mergeUpdatedTask(taskBoard, previous, updated),
       )
+    },
+    [transitionTaskBoard],
+  )
+  const removeDeletedTask = useCallback(
+    (task: Task) => {
+      transitionTaskBoard((taskBoard) => removeTask(taskBoard, task))
     },
     [transitionTaskBoard],
   )
@@ -106,11 +114,13 @@ export function TaskBoardPage() {
         onTaskBoardChange={replaceTaskBoard}
         onTaskCreated={mergeCreated}
         onTaskUpdated={mergeUpdated}
+        onTaskDeleted={removeDeletedTask}
         onOpenTask={openTask}
         onCreateTask={createTask}
         onCloseTask={closeTask}
         createTaskUseCase={createTaskUseCase}
         updateTask={updateTask}
+        deleteTaskUseCase={deleteTask}
         moveTaskUseCase={moveTask}
       />
     </TaskBoardPagingContext>

@@ -11,6 +11,10 @@ export interface UpdateTaskInput {
   readonly task: TaskDraft
 }
 
+export interface DeleteTaskInput {
+  readonly id: TaskId
+}
+
 export interface MoveTaskInput {
   readonly taskId: TaskId
   readonly targetStatus: TaskStatus
@@ -26,5 +30,6 @@ export interface MoveTaskResult {
 export interface TaskCommands {
   createTask(input: CreateTaskInput): Promise<Task>
   updateTask(input: UpdateTaskInput): Promise<Task>
+  deleteTask(input: DeleteTaskInput): Promise<void>
   moveTask(input: MoveTaskInput): Promise<MoveTaskResult>
 }

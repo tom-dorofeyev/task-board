@@ -27,14 +27,33 @@ test('task card transfers its id when dragged', () => {
   })
 })
 
-function renderTaskCard() {
+test('task card actions provide only the task ID', () => {
+  const onOpen = vi.fn()
+  const onDelete = vi.fn()
+  renderTaskCard({ onOpen, onDelete })
+
+  fireEvent.click(screen.getByRole('button', { name: /open nex-102/i }))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete NEX-102' }))
+
+  expect(onOpen).toHaveBeenCalledWith(task.id)
+  expect(onDelete).toHaveBeenCalledWith(task.id)
+})
+
+function renderTaskCard({
+  onOpen = vi.fn(),
+  onDelete = vi.fn(),
+}: {
+  onOpen?: ReturnType<typeof vi.fn>
+  onDelete?: ReturnType<typeof vi.fn>
+} = {}) {
   render(
     <TaskCard
       task={task}
       position={0}
       canMove
       hasUnloadedBoundary={false}
-      onOpen={vi.fn()}
+      onOpen={onOpen}
+      onDelete={onDelete}
       onMove={vi.fn()}
       onDropTask={vi.fn()}
     />,

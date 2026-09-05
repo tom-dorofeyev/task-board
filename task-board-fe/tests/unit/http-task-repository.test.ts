@@ -123,6 +123,15 @@ describe('HTTP task repository', () => {
       { path: '/tasks/task%201/move', body: input, result: move },
     )
   })
+
+  it('deletes a task using its encoded ID', async () => {
+    const requests = new TaskRequests(response(204))
+    const repository = new HttpTaskRepository(requests)
+
+    await repository.deleteTask({ id: TASK.id })
+
+    assert.equal(requests.paths[0], '/tasks/task%201')
+  })
 })
 
 class TaskRequests implements CookieHttpService {

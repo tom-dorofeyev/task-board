@@ -63,6 +63,9 @@ export class TaskBoardApiClient {
   async updateTask(taskId: string, task: TaskDraft): Promise<Task> {
     return this.request(`/tasks/${encodeURIComponent(taskId)}`, 'PUT', task);
   }
+  async deleteTask(taskId: string): Promise<void> {
+    await this.request(`/tasks/${encodeURIComponent(taskId)}`, 'DELETE');
+  }
   async moveTask(input: {
     taskId: string;
     targetStatus: TaskStatus;

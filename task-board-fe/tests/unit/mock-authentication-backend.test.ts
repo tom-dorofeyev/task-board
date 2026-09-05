@@ -366,7 +366,7 @@ describe('MockAuthenticationBackend', () => {
     const session = await createDefaultSession(backend)
 
     const taskResponse = await backend.handle({
-      method: 'DELETE',
+      method: 'POST',
       path: '/tasks/task-1',
       headers: { cookie: session },
     })
@@ -376,7 +376,7 @@ describe('MockAuthenticationBackend', () => {
       headers: { cookie: session },
     })
 
-    assert.equal(taskResponse.headers.allow, 'GET, PUT')
+    assert.equal(taskResponse.headers.allow, 'GET, PUT, DELETE')
     assert.equal(moveResponse.headers.allow, 'POST')
   })
 

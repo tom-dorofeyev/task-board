@@ -1,5 +1,10 @@
 import type { TaskPageWindow } from '../../../application/taskPageWindow'
-import { COLUMN_TITLES, type Task, type TaskStatus } from '../../../domain/task'
+import {
+  COLUMN_TITLES,
+  type Task,
+  type TaskId,
+  type TaskStatus,
+} from '../../../domain/task'
 import { TaskCard } from './TaskCard'
 
 interface TaskStatusColumnProps {
@@ -9,7 +14,8 @@ interface TaskStatusColumnProps {
   canMoveTasks: boolean
   canDropAtEnd: boolean
   hasUnloadedBoundary: boolean
-  onOpenTask(task: Task): void
+  onOpenTask(taskId: TaskId): void
+  onDeleteTask(taskId: TaskId): void
   onMoveTask(taskId: string, status: TaskStatus, position: number): void
   onMoveTaskBefore(taskId: string, targetTaskId: string): void
 }
@@ -22,6 +28,7 @@ export function TaskStatusColumn({
   canDropAtEnd,
   hasUnloadedBoundary,
   onOpenTask,
+  onDeleteTask,
   onMoveTask,
   onMoveTaskBefore,
 }: TaskStatusColumnProps) {
@@ -60,7 +67,8 @@ export function TaskStatusColumn({
             position={position}
             canMove={canMoveTasks}
             hasUnloadedBoundary={hasUnloadedBoundary}
-            onOpen={() => onOpenTask(task)}
+            onOpen={onOpenTask}
+            onDelete={onDeleteTask}
             onMove={(targetStatus, targetPosition) =>
               onMoveTask(task.id, targetStatus, targetPosition)
             }

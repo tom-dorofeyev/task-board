@@ -77,6 +77,25 @@ describe('Task Board API', () => {
     ).toEqual([second.body.id, first.body.id]);
   });
 
+  it('deletes a task and repairs the remaining column positions', async () => {
+    const first = await createTask('first');
+    const second = await createTask('second');
+
+    await request(app.getHttpServer())
+      .delete(`/tasks/${first.body.id}`)
+      .set('Cookie', sessionCookie)
+      .expect(204);
+
+    const page = await request(app.getHttpServer())
+      .get('/tasks')
+      .query({ status: 'todo' })
+      .set('Cookie', sessionCookie)
+      .expect(200);
+    expect(page.body.items).toEqual([
+      expect.objectContaining({ id: second.body.id, position: 0 }),
+    ]);
+  });
+
   it('rejects task reads without a session', async () => {
     await request(app.getHttpServer())
       .get('/tasks')
@@ -115,6 +134,10 @@ describe('Task Board API', () => {
       .put('/tasks/not-a-task')
       .set('Cookie', blockedSessionCookie)
       .send({})
+      .expect(403);
+    await request(app.getHttpServer())
+      .delete('/tasks/not-a-task')
+      .set('Cookie', blockedSessionCookie)
       .expect(403);
     await request(app.getHttpServer())
       .post('/tasks/not-a-task/move')

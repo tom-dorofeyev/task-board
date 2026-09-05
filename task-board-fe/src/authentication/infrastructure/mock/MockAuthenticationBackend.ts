@@ -114,12 +114,14 @@ export class MockAuthenticationBackend implements HttpClient {
     taskId: string,
   ): HttpResponse {
     if (request.method === 'GET') return this.taskDetailsResponse(board, taskId)
+    if (request.method === 'DELETE')
+      return this.deleteTaskResponse(board, taskId)
     if (isTaskUpdateRequest(request))
       return this.updateTaskResponse(board, taskId, request.body)
     if (isTaskMoveRequest(request))
       return this.moveTaskResponse(board, taskId, request.body)
     return methodNotAllowedResponse(
-      taskPath(request.path).endsWith('/move') ? 'POST' : 'GET, PUT',
+      taskPath(request.path).endsWith('/move') ? 'POST' : 'GET, PUT, DELETE',
     )
   }
 
@@ -142,6 +144,15 @@ export class MockAuthenticationBackend implements HttpClient {
     return updatedTask === undefined
       ? response(404, { error: 'not_found' })
       : response(200, updatedTask)
+  }
+
+  private deleteTaskResponse(
+    board: MockTaskBoard,
+    taskId: string,
+  ): HttpResponse {
+    return board.delete(taskId)
+      ? response(204)
+      : response(404, { error: 'not_found' })
   }
 
   private moveTaskResponse(

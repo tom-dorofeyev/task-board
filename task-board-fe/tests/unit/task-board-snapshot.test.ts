@@ -8,6 +8,7 @@ import {
   isTaskBoardExhaustive,
   mergeCreatedTask,
   mergeUpdatedTask,
+  removeTask,
   reconcileMovedTask,
   transitionLoadedTasks,
 } from '../../src/task-board/application/taskBoardSnapshot'
@@ -72,6 +73,18 @@ describe('task board snapshot', () => {
       { totalCount: retryMerge.todo.totalCount, items: retryMerge.todo.items },
       { totalCount: 4, items: [TASK] },
     )
+  })
+
+  it('removes a loaded task and decrements its column total', () => {
+    const snapshot = createSnapshot({
+      items: [TASK],
+      totalCount: 2,
+      pageInfo: {},
+    })
+
+    const result = removeTask(snapshot, TASK)
+
+    assert.deepEqual(result.todo, { items: [], totalCount: 1, pageInfo: {} })
   })
 
   it('keeps an updated unloaded entity out of a partial list page', () => {

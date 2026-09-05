@@ -8,11 +8,13 @@ import {
 } from '../../../application/taskBoardSnapshot'
 import type { CreateTask } from '../../../application/use-cases/CreateTask'
 import type { UpdateTask } from '../../../application/use-cases/UpdateTask'
+import type { DeleteTask } from '../../../application/use-cases/DeleteTask'
 import type { MoveTask } from '../../../application/use-cases/MoveTask'
-import { TASK_STATUSES, type Task } from '../../../domain/task'
+import { TASK_STATUSES, type Task, type TaskId } from '../../../domain/task'
 import type { TaskDraft } from '../../../domain/taskValidation'
 import { useMutationLock, useTaskBoardMoves } from '../useTaskBoardMutations'
 import { TaskDetailsDialog } from './TaskDetailsDialog'
+import { DeleteTaskDialog } from './DeleteTaskDialog'
 import { TaskStatusColumn } from './TaskStatusColumn'
 
 interface TaskBoardViewProps {
@@ -26,11 +28,13 @@ interface TaskBoardViewProps {
   onTaskBoardChange(taskBoard: TaskBoardSnapshot): void
   onTaskCreated(task: Task): void
   onTaskUpdated(previous: Task, updated: Task): void
-  onOpenTask(task: Task): void
+  onTaskDeleted(task: Task): void
+  onOpenTask(taskId: TaskId): void
   onCreateTask(): void
   onCloseTask(): void
   createTaskUseCase: CreateTask
   updateTask: UpdateTask
+  deleteTaskUseCase: DeleteTask
   moveTaskUseCase: MoveTask
 }
 
@@ -52,16 +56,21 @@ export function TaskBoardView({
   onTaskBoardChange,
   onTaskCreated,
   onTaskUpdated,
+  onTaskDeleted,
   onOpenTask,
   onCreateTask,
   onCloseTask,
   createTaskUseCase,
   updateTask: updateTaskUseCase,
+  deleteTaskUseCase,
   moveTaskUseCase,
 }: TaskBoardViewProps) {
   const tasks = getLoadedTasks(taskBoard)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
+  const [taskPendingDeletion, setTaskPendingDeletion] = useState<Task | null>(
+    null,
+  )
   const hasOpenTask = newTaskDraft !== null || taskId !== undefined
   const { isMutationPending, runMutation } = useMutationLock()
   const { persistMove, persistMoveBefore } = useTaskBoardMoves({
@@ -100,6 +109,28 @@ export function TaskBoardView({
         setSaveError('Your changes could not be saved. Please try again.')
       }
     })
+  }
+
+  const deleteTask = async () => {
+    const task = taskPendingDeletion
+    if (task === null) return
+    await runMutation(async () => {
+      try {
+        await deleteTaskUseCase.execute({ id: task.id })
+        onTaskDeleted(task)
+        setTaskPendingDeletion(null)
+        setSaveError(null)
+        setAnnouncement(`${task.key} deleted`)
+        onCloseTask()
+      } catch {
+        setSaveError('The task could not be deleted. Please try again.')
+      }
+    })
+  }
+
+  const requestTaskDeletion = (taskId: TaskId) => {
+    const task = tasks.find((candidate) => candidate.id === taskId)
+    if (task !== undefined) setTaskPendingDeletion(task)
   }
 
   return (
@@ -143,6 +174,7 @@ export function TaskBoardView({
               !getTaskPageBoundaries(pageWindows[status].page).endKnown
             }
             onOpenTask={onOpenTask}
+            onDeleteTask={requestTaskDeletion}
             onMoveTask={(taskId, targetStatus, position) =>
               void persistMove(taskId, targetStatus, position)
             }
@@ -177,12 +209,24 @@ export function TaskBoardView({
         <TaskRoute
           taskDetails={taskDetails}
           error={saveError}
-          disabled={isMutationPending}
+          disabled={isMutationPending || taskPendingDeletion !== null}
           onClose={() => {
             setSaveError(null)
             onCloseTask()
           }}
           onSave={saveTask}
+        />
+      )}
+      {taskPendingDeletion && (
+        <DeleteTaskDialog
+          task={taskPendingDeletion}
+          disabled={isMutationPending}
+          error={saveError}
+          onCancel={() => {
+            setSaveError(null)
+            setTaskPendingDeletion(null)
+          }}
+          onConfirm={() => void deleteTask()}
         />
       )}
     </main>
