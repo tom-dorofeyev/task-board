@@ -50,7 +50,61 @@ npm run dev
 
 Open the local Vite URL shown in the terminal. The sample configuration uses the `demo` user with password `password`.
 
-The frontend proxies `/auth` and `/tasks` to `http://127.0.0.1:3001`, so browser requests remain same-origin. The API’s in-memory users, sessions, tasks, and idempotency records reset whenever it restarts.
+The frontend proxies `/auth` and `/tasks` to `http://127.0.0.1:3001`, so browser requests remain same-origin. Without `TASK_BOARD_MONGODB_URI`, the API uses in-memory task storage and tasks reset whenever it restarts. Sessions always reset on API restart.
+
+## Run with Docker Compose
+
+Prerequisite: Docker Compose v2.
+
+From the repository root, build and start the local application:
+
+```sh
+docker compose up --build
+```
+
+Open [http://localhost:3000](http://localhost:3000) for the web UI. The API is available at `http://localhost:3001`. The Compose setup uses the demo account `demo` and the password `password` unless you set `TASK_BOARD_DEMO_PASSWORD` before starting it:
+
+```sh
+TASK_BOARD_DEMO_PASSWORD='choose-a-local-demo-password' docker compose up --build
+```
+
+The web container proxies `/auth` and `/tasks` to the API, so browser sessions remain same-origin HTTP-only cookies. The internal MongoDB service stores tasks, task keys, and idempotency records in its `task-board-mongo-data` named volume. It survives API restarts, container replacement, `docker compose down`, and a later `docker compose up`. API sessions and cookies remain in memory and reset when the API restarts. Run `docker compose down --volumes` only when you intentionally want to delete saved tasks.
+
+### Use the MCP stdio adapter
+
+The MCP service is a local stdio process, not a public network endpoint. It has no mapped port and only reaches the API on the Compose network. First start the API and obtain a session cookie without placing it in a project file:
+
+```sh
+curl --fail --silent --show-error \
+  --cookie-jar /tmp/task-board-cookie.txt \
+  --header 'Content-Type: application/json' \
+  --data '{"username":"demo","password":"password"}' \
+  http://localhost:3001/auth/login
+export TASK_BOARD_SESSION_COOKIE="$(awk '$6 == "task_board_session" { print $6 "=" $7 }' /tmp/task-board-cookie.txt)"
+rm /tmp/task-board-cookie.txt
+```
+
+If you supplied `TASK_BOARD_DEMO_PASSWORD`, replace `password` in that request with the same value. Keep `TASK_BOARD_SESSION_COOKIE` in your local agent’s environment; do not commit it, put it in a Compose file, or paste it into an agent configuration checked into source control.
+
+Configure a local stdio MCP server to execute this command from the repository root, with `TASK_BOARD_SESSION_COOKIE` forwarded from its environment:
+
+```sh
+docker compose run --rm -T mcp
+```
+
+For example, an agent configuration that supports command arguments and environment variables can use:
+
+```json
+{
+  "command": "docker",
+  "args": ["compose", "run", "--rm", "-T", "mcp"],
+  "env": {
+    "TASK_BOARD_SESSION_COOKIE": "${TASK_BOARD_SESSION_COOKIE}"
+  }
+}
+```
+
+The exact variable-substitution syntax is agent-specific. Ensure its process receives the current `TASK_BOARD_SESSION_COOKIE`; creating a new browser/API session or restarting the API invalidates prior session access.
 
 ## Configuration
 
@@ -61,6 +115,7 @@ Both applications include an `.env.example` with local-development defaults.
 | Backend | `PORT` | `3001` | HTTP API port |
 | Backend | `TASK_BOARD_COOKIE_SECURE` | `false` | Set `true` for HTTPS deployments |
 | Backend | `TASK_BOARD_DEMO_PASSWORD` | `password` | Demo-user password; explicitly configure for production |
+| Backend | `TASK_BOARD_MONGODB_URI` | unset | MongoDB connection URI for task persistence |
 | Frontend | `TASK_BOARD_API_ORIGIN` | `http://127.0.0.1:3001` | API origin used by Vite’s development proxy |
 
 `TASK_BOARD_API_ORIGIN` is intentionally not prefixed with `VITE_`: it is read only by the Vite dev-server configuration and is not exposed to browser code.

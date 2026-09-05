@@ -33,7 +33,7 @@ $ npm install
 
 ## Task Board API
 
-Run the HTTP API with `npm start`. In development and test mode, the supplied in-memory adapter exposes the `demo` and `blocked` users with password `password`; production requires `TASK_BOARD_DEMO_PASSWORD` and keeps no default account. Sessions, tasks, and idempotency records reset when the process restarts.
+Run the HTTP API with `npm start`. In development and test mode, the supplied in-memory adapter exposes the `demo` and `blocked` users with password `password`; production requires `TASK_BOARD_DEMO_PASSWORD` and keeps no default account. Set `TASK_BOARD_MONGODB_URI` to persist tasks, task keys, and idempotency records across restarts. Sessions and cookies always remain in memory and reset when the process restarts.
 
 For local frontend integration, copy `.env.example` to `.env` (or set its
 variables in your shell), then run:

@@ -1,0 +1,51 @@
+services:
+  mongo:
+    image: mongo:8.0
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - task-board-mongo-data:/data/db
+
+  api:
+    image: task-board-api:local
+    build:
+      context: ./task-board-be
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      TASK_BOARD_COOKIE_SECURE: "false"
+      TASK_BOARD_DEMO_PASSWORD: ${TASK_BOARD_DEMO_PASSWORD:-password}
+      TASK_BOARD_MONGODB_URI: mongodb://mongo:27017/task-board
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: ./task-board-fe
+    depends_on:
+      - api
+    ports:
+      - "3000:8080"
+
+  mcp:
+    image: task-board-api:local
+    build:
+      context: ./task-board-be
+    profiles: [mcp]
+    depends_on:
+      - api
+    command: ["node", "dist/mcp/main.js"]
+    environment:
+      TASK_BOARD_API_URL: http://api:3001
+      TASK_BOARD_SESSION_COOKIE: ${TASK_BOARD_SESSION_COOKIE:-}
+    stdin_open: true
+
+volumes:
+  task-board-mongo-data:

@@ -8,10 +8,11 @@ export interface CreateReplay {
 }
 
 export interface TaskRepository {
-  all(): Task[];
-  find(taskId: string): Task | undefined;
-  add(task: Task): void;
-  nextKey(): string;
-  findCreateReplay(key: string): CreateReplay | undefined;
-  saveCreateReplay(key: string, replay: CreateReplay): void;
+  all(): Promise<Task[]>;
+  find(taskId: string): Promise<Task | undefined>;
+  add(task: Task): Promise<void>;
+  nextKey(): Promise<string>;
+  findCreateReplay(key: string): Promise<CreateReplay | undefined>;
+  saveCreateReplay(key: string, replay: CreateReplay): Promise<void>;
+  flush(): Promise<void>;
 }

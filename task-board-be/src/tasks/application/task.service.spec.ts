@@ -13,48 +13,51 @@ const TASK = {
 };
 
 describe('TaskService', () => {
-  it('returns the original task for an idempotent replay', () => {
+  it('returns the original task for an idempotent replay', async () => {
     const service = taskService();
-    const first = service.create('user-1', {
+    const first = await service.create('user-1', {
       idempotencyKey: 'create-1',
       task: TASK,
     });
-    const replay = service.create('user-1', {
+    const replay = await service.create('user-1', {
       idempotencyKey: 'create-1',
       task: TASK,
     });
     expect(replay).toEqual(first);
   });
 
-  it('repairs positions after a cross-column replacement', () => {
+  it('repairs positions after a cross-column replacement', async () => {
     const service = taskService();
-    const first = service.create('user-1', {
+    const first = await service.create('user-1', {
       idempotencyKey: 'create-1',
       task: TASK,
     });
-    const second = service.create('user-1', {
+    const second = await service.create('user-1', {
       idempotencyKey: 'create-2',
       task: { ...TASK, title: 'Second task' },
     });
-    const updated = service.replace(first.id, { ...TASK, status: 'done' });
+    const updated = await service.replace(first.id, {
+      ...TASK,
+      status: 'done',
+    });
     expect(updated).toMatchObject({ status: 'done', position: 0 });
-    expect(service.get(second.id)).toMatchObject({
+    await expect(service.get(second.id)).resolves.toMatchObject({
       status: 'todo',
       position: 0,
     });
   });
 
-  it('returns changed rows when a task moves before an anchor', () => {
+  it('returns changed rows when a task moves before an anchor', async () => {
     const service = taskService();
-    const first = service.create('user-1', {
+    const first = await service.create('user-1', {
       idempotencyKey: 'create-1',
       task: TASK,
     });
-    const second = service.create('user-1', {
+    const second = await service.create('user-1', {
       idempotencyKey: 'create-2',
       task: { ...TASK, title: 'Second task' },
     });
-    const move = service.move(second.id, {
+    const move = await service.move(second.id, {
       taskId: second.id,
       targetStatus: 'todo',
       beforeTaskId: first.id,
@@ -65,20 +68,20 @@ describe('TaskService', () => {
     ]);
   });
 
-  it('rejects a cursor from another user', () => {
+  it('rejects a cursor from another user', async () => {
     const service = taskService();
     for (let position = 0; position <= 50; position += 1)
-      service.create('user-1', {
+      await service.create('user-1', {
         idempotencyKey: `create-${position}`,
         task: { ...TASK, title: `Task ${position}` },
       });
-    const firstPage = service.list('user-1', { status: 'todo' });
-    expect(() =>
+    const firstPage = await service.list('user-1', { status: 'todo' });
+    await expect(
       service.list('user-2', {
         status: 'todo',
         continuationToken: firstPage.pageInfo.nextToken,
       }),
-    ).toThrow('Invalid continuation token');
+    ).rejects.toThrow('Invalid continuation token');
   });
 });
 

@@ -11,27 +11,29 @@ export class InMemoryTaskRepository implements TaskRepository {
   private readonly createReplays = new Map<string, CreateReplay>();
   private nextTaskNumber = 1;
 
-  all(): Task[] {
+  async all(): Promise<Task[]> {
     return this.tasks;
   }
 
-  find(taskId: string): Task | undefined {
+  async find(taskId: string): Promise<Task | undefined> {
     return this.tasks.find((task) => task.id === taskId);
   }
 
-  add(task: Task): void {
+  async add(task: Task): Promise<void> {
     this.tasks.push(task);
   }
 
-  nextKey(): string {
+  async nextKey(): Promise<string> {
     return `NEX-${this.nextTaskNumber++}`;
   }
 
-  findCreateReplay(key: string): CreateReplay | undefined {
+  async findCreateReplay(key: string): Promise<CreateReplay | undefined> {
     return this.createReplays.get(key);
   }
 
-  saveCreateReplay(key: string, replay: CreateReplay): void {
+  async saveCreateReplay(key: string, replay: CreateReplay): Promise<void> {
     this.createReplays.set(key, replay);
   }
+
+  async flush(): Promise<void> {}
 }
